@@ -3,7 +3,7 @@ package internal
 /*
  * @Date: 2021-01-18 17:59:03
  * @LastEditors: aiden.deng (Zhenpeng Deng)
- * @LastEditTime: 2021-01-18 21:05:44
+ * @LastEditTime: 2021-01-18 21:45:21
  */
 
 import (
@@ -39,33 +39,54 @@ func parseCmdRunE(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	// pkgs, err := profiles.Packages()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// funcCoverages, err := profiles.FuncLevelPercentageCovered()
-	// if err != nil {
-	// 	return err
-	// }
-	// for _, funcCoverage := range funcCoverages {
-	// 	fmt.Println(funcCoverage.Filename, funcCoverage.FuncName, funcCoverage.Count, funcCoverage.Total, funcCoverage.Count/funcCoverage.Total)
-	// }
-
-	// fileCoverages, err := profiles.FileLevelPercentageCovered()
-	// if err != nil {
-	// 	return err
-	// }
-	// for _, fileCoverage := range fileCoverages {
-	// 	fmt.Println(fileCoverage.Filename, fileCoverage.Covered, fileCoverage.Total, fileCoverage.Covered/fileCoverage.Total)
-	// }
-
-	packageCoverages, err := profiles.PackageLevelPercentageCovered()
+	packageLevel, err := c.PersistentFlags().GetBool("package")
 	if err != nil {
 		return err
 	}
-	for _, packageCoverage := range packageCoverages {
-		fmt.Println(packageCoverage.PackageName, packageCoverage.Covered, packageCoverage.Total, packageCoverage.Percentage())
+	fileLevel, err := c.PersistentFlags().GetBool("file")
+	if err != nil {
+		return err
 	}
+	funcLevel, err := c.PersistentFlags().GetBool("func")
+	if err != nil {
+		return err
+	}
+	if !packageLevel && !fileLevel && !funcLevel {
+		fileLevel = true
+	}
+
+	// ----------------------------------------------------------------
+	if packageLevel {
+		packageCoverages, err := profiles.PackageLevelPercentageCovered()
+		if err != nil {
+			return err
+		}
+		for _, packageCoverage := range packageCoverages {
+			fmt.Printf("%s\t%.2f%%\n", packageCoverage.PackageName, packageCoverage.Percentage())
+		}
+	}
+
+	// ----------------------------------------------------------------
+	if fileLevel {
+		fileCoverages, err := profiles.FileLevelPercentageCovered()
+		if err != nil {
+			return err
+		}
+		for _, fileCoverage := range fileCoverages {
+			fmt.Printf("%s\t%.2f%%\n", fileCoverage.Filename, fileCoverage.Percentage())
+		}
+	}
+
+	// ----------------------------------------------------------------
+	if funcLevel {
+		funcCoverages, err := profiles.FuncLevelPercentageCovered()
+		if err != nil {
+			return err
+		}
+		for _, funcCoverage := range funcCoverages {
+			fmt.Printf("%s\t%s\t%.2f%%\n", funcCoverage.Filename, funcCoverage.FuncName, funcCoverage.Percentage())
+		}
+	}
+
 	return nil
 }
