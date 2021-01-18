@@ -3,7 +3,7 @@ package internal
 /*
  * @Date: 2021-01-18 17:59:03
  * @LastEditors: aiden.deng (Zhenpeng Deng)
- * @LastEditTime: 2021-01-18 18:06:59
+ * @LastEditTime: 2021-01-18 19:22:06
  */
 
 import (
@@ -22,6 +22,8 @@ func newParseCmd() *cobra.Command {
 		RunE:  parseCmdRunE,
 	}
 
+	parseCmd.PersistentFlags().Bool("package")
+
 	return parseCmd
 }
 
@@ -35,10 +37,12 @@ func parseCmdRunE(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	for _, profile := range profiles {
-		fmt.Println(profile.FileName, profile.Mode)
-
+	pkgs, err := profiles.Packages()
+	if err != nil {
+		return err
 	}
+
+	fmt.Println(pkgs)
 
 	return nil
 }
